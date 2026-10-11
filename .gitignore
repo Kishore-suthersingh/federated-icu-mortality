@@ -1,0 +1,32 @@
+# Data — never commit; pulled from Kaggle at runtime
+data/
+*.csv
+*.pcap
+*.parquet
+
+# Outputs
+outputs/
+results/
+figures/
+*.pkl
+*.pt
+*.joblib
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+.pytest_cache/
+.ipynb_checkpoints/
+
+# Kaggle credentials — must never be committed
+kaggle.json
+access_token
+.kaggle/
+
+# OS
+Thumbs.db
+desktop.ini
+~$*.docx
