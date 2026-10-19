@@ -109,6 +109,11 @@ class MLPConfig:
     dropout: float = 0.2
     activation: Literal["relu", "gelu"] = "relu"
     batch_norm: bool = True
+    # LayerNorm instead of BatchNorm. Required for user-level DP on the update
+    # channel: BatchNorm's running statistics are buffers, not parameters, and
+    # perturbing them with DP noise can drive a variance negative. LayerNorm has
+    # no running statistics, so every aggregated tensor is a trainable parameter.
+    layer_norm: bool = False
 
     # Weight on an auxiliary reconstruction loss (embedding -> raw features),
     # so the total local objective is `CE + reconstruction_weight * MSE`.

@@ -93,6 +93,20 @@ class FedAvgTrainer:
         self.torch_generator = torch.Generator(device="cpu").manual_seed(seed)
         self._noise_multiplier = self._resolve_noise_multiplier()
 
+        # DP-FedAvg noises every floating-point entry of the aggregated state.
+        # Running statistics (BatchNorm's mean and variance) are buffers, and
+        # noise can make a variance negative, after which inference returns
+        # NaN. Refuse rather than fail silently: the parameters-only model is
+        # the correct one for user-level DP.
+        if self._noise_multiplier > 0:
+            buffers = [n for n, b in self.global_model.named_buffers()
+                       if torch.is_floating_point(b)]
+            if buffers:
+                raise ValueError(
+                    "User-level DP noise would perturb running statistics "
+                    f"{buffers[:3]}; set mlp.layer_norm=True (or batch_norm=False)."
+                )
+
         self.clipper = (
             AdaptiveClipper(
                 initial=self.dp_cfg.clip_norm,

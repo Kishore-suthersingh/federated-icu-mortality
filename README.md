@@ -55,6 +55,7 @@ The results were produced on Kaggle (CPU) by these notebooks:
 | `notebooks/kaggle_wids.ipynb` | single-seed run of both regimes, including attacks and the centralized-cascade and stacking ablations |
 | `notebooks/kaggle_wids_multiseed.ipynb` | five-seed (42–46) runs of both regimes: discrimination, calibration and paired tests |
 | `notebooks/kaggle_wids_privacy.ipynb` | single-seed record-level and user-level DP sweeps with attacks |
+| `notebooks/kaggle_wids_userdp.ipynb` | corrected user-level DP sweep (LayerNorm encoder): five budgets × 5, 10 and 30 rounds, five seeds; summarised by `scripts/analyze_userdp.py` |
 | `notebooks/kaggle_wids_revision.ipynb` | revision analyses: five-seed attacks with per-feature reconstruction error and per-record predictions, the five-seed DP sweep, and the client-pooling sensitivity (thresholds 2, 50, 100) |
 
 Figures come from the stored outputs:
@@ -81,13 +82,14 @@ dominate the pooled leakage ratio; report it per feature or without them.
 Results are not bit-identical across devices or software stacks. Keep every run
 that feeds one aggregate on the same stack.
 
-## Known issue
+## User-level DP and normalization
 
-When user-level DP is enabled, `privacy.aggregate_dp` adds noise to every
-floating-point entry of the encoder state. That includes the batch-normalisation
-running variances, which can go negative and make inference return non-finite
-values. The paper withdraws its user-level DP result for this reason. A correct
-evaluation must exclude normalisation statistics from the perturbed update.
+DP-FedAvg noises every floating-point tensor it aggregates. BatchNorm's running
+variances are such tensors, and noise can make them negative, after which
+inference returns NaN; this is what broke the original user-level runs. Use
+`mlp.layer_norm=True` for user-level DP: LayerNorm keeps no running statistics.
+`FedAvgTrainer` now refuses to add update noise to a model with running
+statistics, and `tests/test_dp_normalization.py` covers the failure and the fix.
 
 ## Setup
 

@@ -36,7 +36,9 @@ class MLPEncoder(nn.Module):
         prev = input_dim
         for hidden in cfg.hidden_dims:
             layers.append(nn.Linear(prev, hidden))
-            if cfg.batch_norm:
+            if getattr(cfg, "layer_norm", False):
+                layers.append(nn.LayerNorm(hidden))
+            elif cfg.batch_norm:
                 layers.append(nn.BatchNorm1d(hidden))
             layers.append(activation())
             if cfg.dropout > 0:

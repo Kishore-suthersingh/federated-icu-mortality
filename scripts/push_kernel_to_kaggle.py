@@ -29,11 +29,12 @@ KERNELS = {
     "kaggle_wids_privacy": ("fedlgbm-wids-privacy", ("widsdatathon2020",)),
     "kaggle_wids_multiseed": ("fedlgbm-wids-multiseed", ("widsdatathon2020",)),
     "kaggle_wids_revision": ("fedlgbm-wids-revision", ("widsdatathon2020",)),
+    "kaggle_wids_userdp": ("fedlgbm-wids-userdp", ("widsdatathon2020",)),
 }
 
 # Notebooks that run on CPU by design. Requesting a GPU for them would only
 # spend the weekly GPU quota on an idle accelerator.
-CPU_ONLY = {"kaggle_wids_revision"}
+CPU_ONLY = {"kaggle_wids_revision", "kaggle_wids_userdp"}
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from push_to_kaggle import resolve_username  # noqa: E402
