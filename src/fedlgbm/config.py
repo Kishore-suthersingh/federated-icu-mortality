@@ -191,6 +191,11 @@ class ExperimentConfig:
     # Attacks train an extra decoder network; skip inside large sweeps.
     skip_privacy_attacks: bool = False
 
+    # Write every model's per-record test probabilities to predictions.npz, so
+    # reliability diagrams and complete-case comparisons can be drawn later
+    # without re-running anything.
+    save_predictions: bool = False
+
     def to_dict(self) -> dict:
         return _jsonify(asdict(self))
 

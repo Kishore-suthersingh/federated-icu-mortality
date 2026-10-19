@@ -53,8 +53,9 @@ The results were produced on Kaggle (CPU) by these notebooks:
 | Notebook | Produces |
 |---|---|
 | `notebooks/kaggle_wids.ipynb` | single-seed run of both regimes, including attacks and the centralized-cascade and stacking ablations |
-| `notebooks/kaggle_wids_multiseed.ipynb` | five-seed (42–46) runs of both regimes: Tables 3–5 and 8 |
-| `notebooks/kaggle_wids_privacy.ipynb` | record-level and user-level DP sweeps with attacks: Tables 6–7 |
+| `notebooks/kaggle_wids_multiseed.ipynb` | five-seed (42–46) runs of both regimes: discrimination, calibration and paired tests |
+| `notebooks/kaggle_wids_privacy.ipynb` | single-seed record-level and user-level DP sweeps with attacks |
+| `notebooks/kaggle_wids_revision.ipynb` | revision analyses: five-seed attacks with per-feature reconstruction error and per-record predictions, the five-seed DP sweep, and the client-pooling sensitivity (thresholds 2, 50, 100) |
 
 Figures come from the stored outputs:
 
@@ -62,6 +63,20 @@ Figures come from the stored outputs:
 python scripts/make_figures.py --artefacts <outputs dir> --out figures/
 python scripts/make_revision_figures.py --artefacts <outputs dir> --out figures/revision
 ```
+
+The revision analyses (comparison with APACHE IVa on valid scores, reliability
+diagrams, five-seed attacks and DP sweep, per-feature leakage, pooling
+sensitivity) are summarised from the revision notebook's outputs, with a check
+that the rerun reproduces the original per-seed AUROCs:
+
+```
+python scripts/analyze_revision.py --revision <revision outputs dir>     --original <multiseed outputs dir> --out figures/revision
+```
+
+Two evaluation details matter. APACHE IVa probabilities are missing for some
+stays and stored as -1 for others; compare against it only on valid scores in
+[0, 1]. The two diagnosis-code columns are ordinal-coded and unscaled, so they
+dominate the pooled leakage ratio; report it per feature or without them.
 
 Results are not bit-identical across devices or software stacks. Keep every run
 that feeds one aggregate on the same stack.

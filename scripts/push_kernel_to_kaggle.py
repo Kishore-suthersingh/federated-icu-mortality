@@ -28,7 +28,12 @@ KERNELS = {
     "kaggle_wids": ("fedlgbm-wids", ("widsdatathon2020",)),
     "kaggle_wids_privacy": ("fedlgbm-wids-privacy", ("widsdatathon2020",)),
     "kaggle_wids_multiseed": ("fedlgbm-wids-multiseed", ("widsdatathon2020",)),
+    "kaggle_wids_revision": ("fedlgbm-wids-revision", ("widsdatathon2020",)),
 }
+
+# Notebooks that run on CPU by design. Requesting a GPU for them would only
+# spend the weekly GPU quota on an idle accelerator.
+CPU_ONLY = {"kaggle_wids_revision"}
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from push_to_kaggle import resolve_username  # noqa: E402
@@ -65,7 +70,7 @@ def main() -> None:
             "language": "python",
             "kernel_type": "notebook",
             "is_private": True,
-            "enable_gpu": True,
+            "enable_gpu": args.notebook not in CPU_ONLY,
             # No internet: the run must depend only on the attached datasets,
             # so it stays reproducible and cannot silently pull a new package.
             "enable_internet": False,

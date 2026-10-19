@@ -107,6 +107,10 @@ def embedding_inversion_attack(
 
     mse_attack = float(np.mean((reconstructed - X_test) ** 2))
     mse_baseline = float(np.mean((baseline - X_test) ** 2))
+    # Per feature, so the paper can say which clinical variables leak, not only
+    # how much leaks in aggregate.
+    per_feature_attack = np.mean((reconstructed - X_test) ** 2, axis=0)
+    per_feature_baseline = np.mean((baseline - X_test) ** 2, axis=0)
 
     return {
         "reconstruction_mse": mse_attack,
@@ -115,6 +119,8 @@ def embedding_inversion_attack(
         "leakage_ratio": float(1.0 - mse_attack / (mse_baseline + 1e-12)),
         "r2_attack": float(r2_score(X_test, reconstructed, multioutput="variance_weighted")),
         "r2_baseline": float(r2_score(X_test, baseline, multioutput="variance_weighted")),
+        "per_feature_mse_attack": per_feature_attack.astype(float).tolist(),
+        "per_feature_mse_baseline": per_feature_baseline.astype(float).tolist(),
         "interpretation": (
             "leakage_ratio is the fraction of reconstruction error the attacker "
             "removes relative to predicting the training mean. ~0 means the "
@@ -186,6 +192,7 @@ def evaluate_privacy(
     max_samples: int = 5000,
     seed: int = 0,
     device: torch.device | None = None,
+    feature_names: list[str] | None = None,
 ) -> dict:
     """Run both attacks against a fitted hybrid model."""
     rng = np.random.default_rng(seed)
@@ -205,6 +212,8 @@ def evaluate_privacy(
         results["embedding_inversion"] = embedding_inversion_attack(
             model.embed(Xtr), Xtr, model.embed(Xte), Xte, seed=seed, device=device
         )
+        if feature_names is not None:
+            results["embedding_inversion"]["feature_names"] = list(feature_names)
         logger.info(
             "Embedding inversion: leakage_ratio=%.4f (0 = none, 1 = full)",
             results["embedding_inversion"]["leakage_ratio"],

@@ -98,8 +98,8 @@ def fig_architecture(data: dict, path: Path) -> None:
             fontsize=7.8, color=RED, style="italic")
     ax.text(0.2, 3.68, f"{len(sizes)} clients from\n147 hospitals (seed 42)",
             fontsize=7.2, color=GREY, va="top")
-    ax.text(9.8, 3.68, "measured: 93.6% of feature variance\nrecoverable by an "
-            "adversary with\nin-distribution auxiliary records (§4.4)",
+    ax.text(9.8, 3.68, "measured (adversary with in-distribution\nauxiliary records): "
+            "diagnosis codes recovered\nalmost exactly, other features R² ≈ 0.21",
             fontsize=6.8, color=RED, ha="right", va="top", style="italic")
 
     ax.plot([1.0, 9.0], [3.0, 3.0], color=INK, linewidth=0.8)

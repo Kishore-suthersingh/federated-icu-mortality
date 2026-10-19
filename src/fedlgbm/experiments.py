@@ -60,10 +60,13 @@ def run_all(cfg: ExperimentConfig, skip: set[str] | None = None) -> dict:
         "timings_sec": {},
     }
 
+    test_proba: dict[str, np.ndarray] = {}
+
     def record(name: str, y_pred, y_proba, elapsed: float) -> None:
         results["models"][name] = metrics.compute(
             ds.y_test, y_pred, y_proba, ds.class_names
         )
+        test_proba[name] = np.asarray(y_proba, dtype=np.float32)
         results["timings_sec"][name] = round(elapsed, 2)
         logger.info("%-26s %s", name, metrics.headline(results["models"][name]))
 
@@ -108,6 +111,7 @@ def run_all(cfg: ExperimentConfig, skip: set[str] | None = None) -> dict:
                 hybrid_model,
                 ds.X_train, ds.y_train, ds.X_test, ds.y_test,
                 seed=cfg.seed, device=hybrid_model.device,
+                feature_names=ds.feature_names,
             )
 
         # --- Communication cost --------------------------------------
@@ -177,6 +181,21 @@ def run_all(cfg: ExperimentConfig, skip: set[str] | None = None) -> dict:
             ds.y_test, (filled >= 0.5).astype(np.int64), proba, ds.class_names
         )
         results["models"][f"incumbent_{name}"]["coverage"] = float(finite.mean())
+
+    # --- Per-record predictions ----------------------------------------
+    if cfg.save_predictions:
+        arrays = {"y_test": np.asarray(ds.y_test)}
+        if ds.test_sites is not None:
+            arrays["test_sites"] = np.asarray(ds.test_sites).astype(str)
+        for name, proba in test_proba.items():
+            arrays[f"proba__{name}"] = proba
+        # Raw incumbent scores, NaN where missing: the evaluation above fills
+        # them with the median, and a complete-case analysis needs the gaps.
+        for name, splits in getattr(ds, "baseline_scores", {}).items():
+            if splits.get("test") is not None:
+                arrays[f"raw_score__{name}"] = np.asarray(splits["test"], dtype=np.float32)
+        np.savez_compressed(output_dir / "predictions.npz", **arrays)
+        logger.info("Saved per-record test predictions for %d models", len(test_proba))
 
     # --- Persist ------------------------------------------------------
     (output_dir / "results.json").write_text(
